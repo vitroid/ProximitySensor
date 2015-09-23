@@ -1,0 +1,119 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+  <head>
+    <title>B133 Status</title>
+    <link type="text/css" rel="stylesheet" href="/m.css" />
+    <meta name="viewport" content="width=320" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body id="body">
+    <script src="jquery.js"></script>
+    <div id="box" class="box">
+    <p id="pre"   class="pre"></p>
+    <p id="msg"   class="msg"></p>
+    <p id="post"  class="pre"></p>
+    </div>
+    <p id="namebox" class="name"><span id="name">理論化学研究室<br />松本 正和</span></p>
+    <p id="status" class="status"></p>
+    <script type="text/javascript">
+      //$.get("status");
+      //document.getElementById('pre').innerText = "たぶん";
+      
+      // 最初の実行
+      TimerCount();
+      parity = 0;
+      lastStatus = 0;
+      statusChanged = 0;
+      rep = 0;
+
+      function blackout(status){
+          document.getElementById("body").className = "blackout";
+          document.getElementById("namebox").className = "namei";
+          document.getElementById("status").innerHTML = status;
+          document.getElementById("box").style.backgroundImage = "";
+      }
+      
+
+      function occupied(status){
+          document.getElementById("pre").innerHTML = "たぶん";
+          document.getElementById("msg").innerHTML = "在室";
+          document.getElementById("post").innerHTML = "IN";
+          document.getElementById("body").className = "occupied";
+          document.getElementById("status").innerHTML = status;
+          document.getElementById("namebox").className = "name";
+    //document.getElementById("box").style.backgroundImage = "url(/occupied.jpg)";
+      }
+
+      function vacant(status){
+          // ここに定期的に行なう処理を書く
+          document.getElementById("pre").innerHTML = "おそらく";
+          document.getElementById("msg").innerHTML = "不在";
+          document.getElementById("post").innerHTML = "OUT";
+          document.getElementById("body").className = "vacant";
+          document.getElementById("status").innerHTML = status;
+          document.getElementById("namebox").className = "name";
+    //document.getElementById("box").style.backgroundImage = "url(/vacant.jpg)";
+      }
+
+      function callback(status){
+        status -= 0;
+        newStatus = 0;
+        myD = new Date( ) ;
+        hour   = myD.getHours();
+    if( status > 1000 ){
+          newStatus = 1;//occupied
+        } else {
+          newStatus = 2;  //vacant
+        }
+        if ( lastStatus == 0 ){
+          lastStatus = newStatus;
+        }
+        if ( newStatus != lastStatus ){
+          rep ++;
+          if ( rep >= 1 ){
+            lastStatus = newStatus;
+            rep = 0;
+          }
+        }
+        else{
+          rep = 0;
+        }
+	    if ( lastStatus == 1 ){
+          occupied(status);
+        }
+        else {
+          if ( 22 <= hour || hour < 9 ){
+            blackout(status);
+          }
+          else{
+            vacant(status);
+          }
+        }
+        parity = (parity + 1) % 2;
+        if ( parity == 0 ){
+          document.getElementById("name").innerHTML = "理論化学研究室<br />松本 正和";
+        }
+        else if  ( parity == 1 ){
+          document.getElementById("name").innerHTML = "Masakazu Matsumoto";
+        }
+        else{
+          sec   = myD.getSeconds();
+          url   = "http://mystatus.skype.com/bigclassic/vitroid?" + sec;
+          document.getElementById("name").innerHTML = "<img src='"+url+"'><br />Skype: vitroid";
+        }
+      }
+
+      function TimerCount(){
+        // ここに定期的に行なう処理を書く
+        $.get("status",{},callback);
+
+        // 10秒ごとに実行
+        window.setTimeout("TimerCount()",10000);
+      }
+    </script>
+  </body>
+</html>
